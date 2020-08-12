@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 '''
 @author:    Jean-Christophe Chouinard. 
 @role:      Sr. SEO Specialist at SEEK.com.au
@@ -41,24 +42,30 @@ days = relativedelta.relativedelta(days=3)
 default_end = today - days 
 
 # Create function to extract all the data
-def gsc_to_csv(site,output,creds,start_date,end_date=default_end):
+def gsc_to_csv(webmasters_service,site,output,creds,start_date,end_date=default_end):
+    '''
+    Extract 100% of the data from Google Search Console.
+    Checks output folder if dates are already extracted.
+    Dates that are already extracted are skipped.
+    Day by day, it requests lines by batch of 25K.
+    It iterates until all lines are extracted for that day.
+    New dates are appended to the existing CSV
+    '''
     get_path = fm.get_full_path(site,output,start_date)
     domain_name = get_path[1]                       # Get Domain From URL
     output_path = get_path[3]                       # Folder created with your domain name
     fm.create_project(domain_name)                  # Create a new project folder
     csv_dt = fm.get_dates_csvs(output_path,site,output)   # Read existing CSVs
-    webmasters_service = authorize_creds(creds)     # Get credentials to log in the api
 
     # Set up Dates
     dates = dm.get_dates(start_date)
     start_date = dates[1]                           # Start first day of the month.
-    end_date = end_date                             # End 3 days in the past, since GSC don't show latest data.
+    end_date = dm.str_to_date(end_date)                # End 3 days in the past, since GSC don't show latest data.
     delta = datetime.timedelta(days=1)              # This will let us loop one day at the time
     scDict = defaultdict(list)                      # initialize empty Dict to store data
     while start_date <= end_date:                   # Loop through all dates until start_date is equal to end_date.
         curr_month = dm.date_to_YM(start_date)
         full_path = os.path.join(output_path + curr_month + '_' + output)
-        print(full_path)
         # If a GSC csv file exists from previous extraction
         # and dates in the file match to dates we are extracting...
         if csv_dt is not None and \

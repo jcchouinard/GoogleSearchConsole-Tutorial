@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 '''
 @author:    Jean-Christophe Chouinard. 
 @role:      Sr. SEO Specialist at SEEK.com.au
@@ -29,19 +30,17 @@ days = relativedelta.relativedelta(days=3)
 default_end = today - days 
 
 # Run the extraction
-def gsc_with_filters(site,creds,start_date,end_date=default_end):
-
+def gsc_with_filters(webmasters_service,site,creds,dimension,operator,expression,start_date,end_date=default_end):
     scDict = defaultdict(list) # Create a dict to populate with extraction
-    webmasters_service = authorize_creds(creds) # Authorize the API
     request = {
         'startDate': date_to_str(start_date),
         'endDate': date_to_str(end_date),
         'dimensions': ['date','page','query'],  #country, device, page, query, searchAppearance
         'dimensionFilterGroups': [{
                         'filters': [{
-                            'dimension': 'query',              
-                            'operator': 'contains',           #contains, equals, notEquals, notContains
-                            'expression': 'python'
+                            'dimension': dimension,              
+                            'operator': operator,
+                            'expression': expression
                         }]
                         }]
     }

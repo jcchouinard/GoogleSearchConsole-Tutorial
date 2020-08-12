@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 '''
 @author:    Jean-Christophe Chouinard. 
 @role:      Sr. SEO Specialist at SEEK.com.au
@@ -27,8 +28,7 @@ from date_manip import date_to_str
 from oauth import authorize_creds, execute_request
 
 '''
-Initialize default end_date.
-Set 3 days in the past.
+Initialize default end_date. Set 3 days in the past.
 GSC doesn't allow more recent dates.
 This'll be used when end_date is not defined.
 '''
@@ -36,12 +36,12 @@ today = datetime.date.today()
 days = relativedelta.relativedelta(days=3)
 default_end = today - days 
 
-def gsc_by_url(site,list_of_urls,creds,start_date,end_date=default_end):
+def gsc_by_url(webmasters_service,site,list_of_urls,creds,start_date,end_date=default_end):
     '''
     Extracts clicks and impressions from a list of URLs.
     '''
     # Authorize credentials to log in the API
-    ws = authorize_creds(creds) 
+    #webmasters_service = authorize_creds(creds) 
 
     # Make sure dates are in string format
     start_date = date_to_str(start_date)
@@ -52,7 +52,7 @@ def gsc_by_url(site,list_of_urls,creds,start_date,end_date=default_end):
 
     for url in list_of_urls:    # For each URL
         '''
-        Request Format
+        Check how to format your request
         jcchouinard.com/what-is-google-search-console-api/
         '''
         request = {
@@ -60,13 +60,17 @@ def gsc_by_url(site,list_of_urls,creds,start_date,end_date=default_end):
                     'endDate': end_date,
                     'dimensionFilterGroups': [{
                     'filters': [{
-                        'dimension': 'page',              
-                        'operator': 'equals',           #contains, equals, notEquals, notContains
+                        'dimension': 'page',    # page, query, country, device, searchAppearance              
+                        'operator': 'equals',   # contains, equals, notEquals, notContains
                         'expression': url
                     }]
                     }]
             }
-        response = execute_request(ws, site, request)
+        
+        # Execute the request. Returns a JSON
+        response = execute_request(webmasters_service, site, request)
+        
+        # Convert JSON to a dictionary
         scDict['page'].append(url)
         try:
             for row in response['rows']:
@@ -74,6 +78,7 @@ def gsc_by_url(site,list_of_urls,creds,start_date,end_date=default_end):
                 scDict['impressions'].append(row['impressions'] or 0)
         except Exception as e:
             print(f'An error occurred while extracting {url}: {e}')
-    # Add response to dataframe 
+    
+    # Convert dictionary to a dataframe 
     df = pd.DataFrame(data = scDict)
     return df

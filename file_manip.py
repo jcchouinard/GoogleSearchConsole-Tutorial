@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 '''
 @author:    Jean-Christophe Chouinard. 
 @role:      Sr. SEO Specialist at SEEK.com.au
@@ -120,6 +121,20 @@ def get_dates_csvs(full_path,site,filename):
         for date in dates:              # For each date
             dset.add(date)              # Add to a set of unique values
     return dset
+
+def date_to_index(df,datecol):
+    '''
+    Convert date column of a DF to a datetime index.
+    '''
+    if df.index.name == datecol:
+        if isinstance(df.index, pd.DatetimeIndex):
+            print(f'{datecol} is already a datetime index')
+        else:
+            df[datecol] = pd.to_datetime(df[datecol])
+    else:
+        df[datecol] = pd.to_datetime(df[datecol])
+        df = df.set_index(datecol)
+    return df
 
 def csvs_to_df(path,filename):
     '''

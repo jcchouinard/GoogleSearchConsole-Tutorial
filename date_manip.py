@@ -1,4 +1,5 @@
-'''
+#!/usr/bin/env python
+""" Date Manipulations Functions
 @author:    Jean-Christophe Chouinard. 
 @role:      Sr. SEO Specialist at SEEK.com.au
 @website:   jcchouinard.com
@@ -13,7 +14,7 @@ jcchouinard.com/how-to-get-google-search-console-api-keys/
 
 How to format your request
 jcchouinard.com/what-is-google-search-console-api/
-'''
+"""
 
 import datetime
 import pandas as pd
@@ -65,16 +66,14 @@ def get_dates(chosen_date):
     If date is not defined, use current month,
     else use month of the specified date.
     '''
-    print(f'Fetching start and end dates from {chosen_date}')
-    today = datetime.date.today()
+    today = datetime.datetime.now()
     days = relativedelta.relativedelta(days=3) # GSC does not permit date earlier than 3 days
     end_date = today - days  
     if chosen_date is '': 
         delta = end_date - today.replace(day=1) # Get first day of the month
         start_date = end_date - delta # count difference between end date and first day of the month
     else:
-        delta = end_date - datetime.datetime.strptime(chosen_date,'%Y-%m-%d').date() # Get first day of the month
+        delta = end_date - datetime.datetime.strptime(chosen_date,'%Y-%m-%d') # Get first day of the month
         start_date = end_date - delta # count difference between end date and first day of the month
     YM_date = date_to_YM(start_date)
-    print(f'start_date: {start_date}, end_date: {end_date}')
     return YM_date, start_date, end_date

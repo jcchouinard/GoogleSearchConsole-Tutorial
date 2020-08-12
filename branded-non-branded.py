@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 '''
 @author:    Jean-Christophe Chouinard. 
 @role:      Sr. SEO Specialist at SEEK.com.au
@@ -7,12 +8,6 @@
 
 Learn Python for SEO
 jcchouinard.com/python-for-seo
-
-Get API Keys
-jcchouinard.com/how-to-get-google-search-console-api-keys/
-
-How to format your request
-jcchouinard.com/what-is-google-search-console-api/
 '''
 
 import matplotlib.pyplot as plt

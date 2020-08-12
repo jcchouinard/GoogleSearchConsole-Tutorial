@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 '''
 @author:    Jean-Christophe Chouinard. 
 @role:      Sr. SEO Specialist at SEEK.com.au
@@ -22,7 +23,6 @@ import requests
 from collections import defaultdict
 from dateutil import relativedelta
 from googleapiclient.discovery import build
-#from oauth2client.client import OAuth2WebServerFlow
 from oauth2client import client
 from oauth2client import file
 from oauth2client import tools
