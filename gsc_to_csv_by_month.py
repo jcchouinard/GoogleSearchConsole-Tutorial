@@ -1,3 +1,20 @@
+'''
+@author:    Jean-Christophe Chouinard. 
+@role:      Sr. SEO Specialist at SEEK.com.au
+@website:   jcchouinard.com
+@LinkedIn:  linkedin.com/in/jeanchristophechouinard/ 
+@Twitter:   twitter.com/@ChouinardJC
+
+Learn Python for SEO
+jcchouinard.com/python-for-seo
+
+Get API Keys
+jcchouinard.com/how-to-get-google-search-console-api-keys/
+
+How to format your request
+jcchouinard.com/what-is-google-search-console-api/
+'''
+
 import argparse
 import os
 import pandas as pd
@@ -12,18 +29,24 @@ from dateutil import relativedelta
 import date_manip as dm
 import file_manip as fm
 from oauth import authorize_creds, execute_request
-                      
+
+'''
+Initialize default end_date.
+Set 3 days in the past.
+GSC doesn't allow more recent dates.
+This'll be used when end_date is not defined.
+'''                     
 today = datetime.date.today()
 days = relativedelta.relativedelta(days=3)
 default_end = today - days 
 
 # Create function to extract all the data
-def gsc_to_csv(site,output,creds,start_date,end_date=default_end,storage='authorizedcreds.dat'):
+def gsc_to_csv(site,output,creds,start_date,end_date=default_end):
     get_path = fm.get_full_path(site,output,start_date)
     domain_name = get_path[1]                       # Get Domain From URL
     output_path = get_path[3]                       # Folder created with your domain name
     fm.create_project(domain_name)                  # Create a new project folder
-    csv_dt = fm.get_dates_csvs(output_path,site,output)   # Read existing CSV
+    csv_dt = fm.get_dates_csvs(output_path,site,output)   # Read existing CSVs
     webmasters_service = authorize_creds(creds)     # Get credentials to log in the api
 
     # Set up Dates

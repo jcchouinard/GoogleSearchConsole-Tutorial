@@ -1,3 +1,20 @@
+'''
+@author:    Jean-Christophe Chouinard. 
+@role:      Sr. SEO Specialist at SEEK.com.au
+@website:   jcchouinard.com
+@LinkedIn:  linkedin.com/in/jeanchristophechouinard/ 
+@Twitter:   twitter.com/@ChouinardJC
+
+Learn Python for SEO
+jcchouinard.com/python-for-seo
+
+Get API Keys
+jcchouinard.com/how-to-get-google-search-console-api-keys/
+
+How to format your request
+jcchouinard.com/what-is-google-search-console-api/
+'''
+
 import json
 import glob
 import os
@@ -7,70 +24,79 @@ from urllib.parse import urlparse
 
 from date_manip import get_dates
 
-# Create a project if it does not exist
 def create_project(directory):
+    '''
+    Create a project if it does not exist
+    '''
     if not os.path.exists(directory):
         print('Create project: '+ directory)
         os.makedirs(directory)
     else:
         print(f'{directory} project exists')
 
-# Get Domain Name to Create a Project
 def get_domain_name(start_url):
-    domain_name = '{uri.netloc}'.format(uri=urlparse(start_url))  # Get Domain Name To Name Project
-    domain_name = domain_name.replace('.','_')
+    '''
+    Get Domain Name in the www_domain_com format
+    1. Parse URL
+    2. Get Domain
+    3. Replace dots to make a usable folder path
+    '''
+    url = urlparse(start_url)               # Parse URL into components
+    domain_name = url.netloc                # Get Domain (or network location)
+    domain_name = domain_name.replace('.','_')# Replace . by _ to create usable folder
     return domain_name
 
-# Write to a JSON file
-def write_to_json(data,filename):
-    with open(filename, 'w') as f:
-        json.dump(data, f, indent=4)
-
-# Write to a CSV file
 def write_to_csv(data,filename):
-    if not os.path.isfile(filename):
+    '''
+    Write or append data to a CSV file
+    1. If file does not exist...
+    2. ... create it using data
+    3. If it exists...
+    4. Append it without header
+    '''
+    if not os.path.isfile(filename): 
         data.to_csv(filename, index=False)
-    else: # else it exists so append without writing the header
+    else:
         data.to_csv(filename, mode='a', header=False, index=False)
 
-# Convert date column to a datetime Index
-def date_to_index(df,datecol):
-    if df.index.name == datecol:
-        if isinstance(df.index, pd.DatetimeIndex):
-            print(f'{datecol} is already a datetime index')
-        else:
-            df[datecol] = pd.to_datetime(df[datecol])
-    else:
-        df[datecol] = pd.to_datetime(df[datecol])
-        df = df.set_index(datecol)
-    return df
-
-# Overwrite CSV without duplicates
-def drop_duplicates(filename):
-    f = pd.read_csv(filename).drop_duplicates(keep=False)
-    f.to_csv(filename)
-
-# Define where to export CSVs
 def get_full_path(site,filename,date):
-    YM_date = get_dates(date)[0]    # Get date as YYYY-MM
+    '''
+    Defines where to export CSVs
+    1. Find the folder location...
+    2. Merge date and filename to an output...
+    3. Merge folder and output
+    Returns: www_domain_com/YYYY-MM_filename
+    '''
+    domain_name = get_domain_name(site)     # Get domain from site URL
+    data_path = domain_name + '/' 
+    YM_date = get_dates(date)[0]            # Get date as YYYY-MM
     output_path = YM_date + '_' + filename  # Add file location
     output = os.path.join(output_path)      # Merge to create YYYY-MM_filename.csv
-    domain_name = get_domain_name(site)  # Get domain from site URL
-    data_path = domain_name + '/' 
     full_path = data_path + output          # Output will be at /your_site_com/YYYY-MM_filename.csv
     return output, domain_name, full_path, data_path
 
-# Check all files that ends with your filename to gather dates from
 def loop_csv(full_path,filename):
-    file_list = []
-    for file in os.listdir(full_path):
-        if file.endswith(os.path.join('_'+ filename)):
-            file_list.append(file)
-            file_list.sort()
+    '''
+    Read all csvs ending with the filename
+    Returns: 
+    [
+        'www_domain_com/2020-04_filename',
+        'www_domain_com/2020-05_filename',
+        'www_domain_com/2020-06_filename'
+    ]
+    '''
+    file_list = []                          # Initialize empty list
+    for file in os.listdir(full_path):      # Check All files in directory
+        if file.endswith('_'+ filename):    # Check that it ends with filename
+            file_list.append(file)          # Add file to list
+            file_list.sort()                # Sort files
     return file_list
 
-# Read CSV if it exists to find dates that have already been processed.
 def get_dates_from_csv(path):
+    '''
+    Read CSV if it exists.
+    From CSV, get unique dates.
+    '''
     if os.path.isfile(path):
         data = pd.read_csv(path)
         data = pd.Series(data['date'].unique())
@@ -78,22 +104,31 @@ def get_dates_from_csv(path):
     else:
         pass
 
-# Check All CSVs to check all dates that have been processed
 def get_dates_csvs(full_path,site,filename):
+    '''
+    Get a list of all existing dates.
+    1. Check all CSV files in project
+    2. Read each CSVs and get unique dates
+    3. Combine unique dates from all CSVs in a set
+    '''
     print(f'Checking existing dates in {full_path}')
-    dset = set()
-    csvs = loop_csv(full_path,filename)
-    for csv in csvs:
-        path = os.path.join(full_path + csv)
-        dates = get_dates_from_csv(path)
-        for date in dates:
-            dset.add(date)
+    dset = set()                        # Initialize a set()
+    csvs = loop_csv(full_path,filename) # Read all csvs
+    for csv in csvs:                    # For each CSV
+        path = os.path.join(full_path + csv)# Get file path
+        dates = get_dates_from_csv(path)# Get unique dates
+        for date in dates:              # For each date
+            dset.add(date)              # Add to a set of unique values
     return dset
 
-# Read all dataframes in path
-def read_all_dfs(path,filename):
-    dfs = []
-    files =[]
+def csvs_to_df(path,filename):
+    '''
+    Read all files in path that contains filename
+    1. Use glob to get a list of files in directory
+    2. Read each file to a dataframe
+    3. Concat all dataframes to a unique DF
+    '''
+    dfs, files = [],[]
     globs = glob.glob(f'{path}/*{filename}')
     for g in globs:
         files.append(g)
@@ -104,22 +139,11 @@ def read_all_dfs(path,filename):
     full_df = pd.concat(dfs)
     return full_df
 
-# Convert dict to DF
-def scdict_to_df(scDict,clicks=True,impressions=True,ctr=False,position=False):
-    df = pd.DataFrame(data = scDict)
-    if clicks:
-        df['clicks'] = df['clicks'].astype('int')
-    if impressions:
-        df['impressions'] = df['impressions'].astype('int')
-    if ctr:
-        df['ctr'] = df['ctr']*100
-    if position:
-        df['position'] = df['position'].round(2)
-    df.sort_values('clicks',inplace=True,ascending=False)
-    return df
-
-# Read All csvs to a combined dataframe
 def return_df(site,filename):
+    '''
+    From a given URL, find all existing GSC data
+    Return them to a unique dataframe.
+    '''
     folder = get_domain_name(site)
-    df = read_all_dfs(folder,filename)  
+    df = csvs_to_df(folder,filename)  
     return df
