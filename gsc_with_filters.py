@@ -25,7 +25,7 @@ from dateutil import relativedelta
 from date_manip import date_to_str
 from oauth import authorize_creds, execute_request
 
-today = datetime.date.today()
+today = datetime.datetime.now()
 days = relativedelta.relativedelta(days=3)
 default_end = today - days 
 
