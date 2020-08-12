@@ -32,7 +32,7 @@ Initialize default end_date. Set 3 days in the past.
 GSC doesn't allow more recent dates.
 This'll be used when end_date is not defined.
 '''
-today = datetime.date.today()
+today = datetime.datetime.now()
 days = relativedelta.relativedelta(days=3)
 default_end = today - days 
 
