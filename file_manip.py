@@ -23,7 +23,7 @@ import pandas as pd
 
 from urllib.parse import urlparse
 
-from date_manip import get_dates
+from date_manip import get_dates, date_to_YM
 
 def create_project(directory):
     '''
@@ -76,7 +76,7 @@ def get_full_path(site,filename,date):
     full_path = data_path + output          # Output will be at /your_site_com/YYYY-MM_filename.csv
     return output, domain_name, full_path, data_path
 
-def loop_csv(full_path,filename):
+def loop_csv(full_path,filename,start_date):
     '''
     Read all csvs ending with the filename
     Returns: 
@@ -86,11 +86,16 @@ def loop_csv(full_path,filename):
         'www_domain_com/2020-06_filename'
     ]
     '''
+    date = date_to_YM(start_date)
     file_list = []                          # Initialize empty list
     for file in os.listdir(full_path):      # Check All files in directory
         if file.endswith('_'+ filename):    # Check that it ends with filename
-            file_list.append(file)          # Add file to list
-            file_list.sort()                # Sort files
+            file_date = file.split('_')[0] 
+            if file_date >= date:
+                print(f'Checking {file}')
+                file_list.append(file)          # Add file to list
+                file_list.sort()                # Sort files
+    print('Done With loop_csv')
     return file_list
 
 def get_dates_from_csv(path):
@@ -105,7 +110,7 @@ def get_dates_from_csv(path):
     else:
         pass
 
-def get_dates_csvs(full_path,site,filename):
+def get_dates_csvs(full_path,site,filename,start_date):
     '''
     Get a list of all existing dates.
     1. Check all CSV files in project
@@ -114,12 +119,13 @@ def get_dates_csvs(full_path,site,filename):
     '''
     print(f'Checking existing dates in {full_path}')
     dset = set()                        # Initialize a set()
-    csvs = loop_csv(full_path,filename) # Read all csvs
+    csvs = loop_csv(full_path,filename,start_date) # Read all csvs
     for csv in csvs:                    # For each CSV
         path = os.path.join(full_path + csv)# Get file path
         dates = get_dates_from_csv(path)# Get unique dates
         for date in dates:              # For each date
             dset.add(date)              # Add to a set of unique values
+    print('Done getting dates from CSV')
     return dset
 
 def date_to_index(df,datecol):

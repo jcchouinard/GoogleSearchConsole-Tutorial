@@ -55,7 +55,7 @@ def gsc_to_csv(webmasters_service,site,output,creds,start_date,end_date=default_
     domain_name = get_path[1]                       # Get Domain From URL
     output_path = get_path[3]                       # Folder created with your domain name
     fm.create_project(domain_name)                  # Create a new project folder
-    csv_dt = fm.get_dates_csvs(output_path,site,output)   # Read existing CSVs
+    csv_dt = fm.get_dates_csvs(output_path,site,output,start_date)# Read existing CSVs
 
     # Set up Dates
     dates = dm.get_dates(start_date)
