@@ -42,7 +42,7 @@ days = relativedelta.relativedelta(days=3)
 default_end = today - days 
 
 # Create function to extract all the data
-def gsc_to_csv(webmasters_service,site,output,creds,start_date,end_date=default_end):
+def gsc_to_csv(webmasters_service,site,output,creds,start_date,end_date=default_end,gz=False):
     '''
     Extract 100% of the data from Google Search Console.
     Checks output folder if dates are already extracted.
@@ -51,11 +51,12 @@ def gsc_to_csv(webmasters_service,site,output,creds,start_date,end_date=default_
     It iterates until all lines are extracted for that day.
     New dates are appended to the existing CSV
     '''
+    print(f'gsc_to_csv gz: {gz}')
     get_path = fm.get_full_path(site,output,start_date)
     domain_name = get_path[1]                       # Get Domain From URL
     output_path = get_path[3]                       # Folder created with your domain name
     fm.create_project(domain_name)                  # Create a new project folder
-    csv_dt = fm.get_dates_csvs(output_path,site,output,start_date)# Read existing CSVs
+    csv_dt = fm.get_dates_csvs(site,output,start_date,gz=gz)# Read existing CSVs
 
     # Set up Dates
     dates = dm.get_dates(start_date)
@@ -125,6 +126,9 @@ def gsc_to_csv(webmasters_service,site,output,creds,start_date,end_date=default_
                     status = 'Finished'                 # change status, you have covered all lines.                
             #print(f'DF to write {df.head()}')
             to_write = df[df['date'].str.contains(dm.date_to_str(start_date))]
-            fm.write_to_csv(to_write,full_path)
+            if gz == False:
+                fm.write_to_csv(to_write,full_path)
+            elif gz == True:
+                fm.write_to_csv_gz(to_write,full_path)
             start_date += delta                         # Increment start_date to continue the loop
     print(f'Done extracting {site}')

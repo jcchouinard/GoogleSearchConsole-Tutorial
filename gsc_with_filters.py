@@ -44,9 +44,7 @@ def gsc_with_filters(webmasters_service,site,creds,dimension,operator,expression
                         }]
                         }]
     }
-    print(request)
     response = execute_request(webmasters_service, site, request)
-    print(response)
     try:
         for row in response['rows']:
             scDict['date'].append(row['keys'][0] or 0)    

@@ -18,6 +18,7 @@ jcchouinard.com/what-is-google-search-console-api/
 
 import json
 import glob
+import gzip
 import os
 import pandas as pd
 
@@ -60,6 +61,23 @@ def write_to_csv(data,filename):
     else:
         data.to_csv(filename, mode='a', header=False, index=False)
 
+def write_to_csv_gz(data,filename):
+    '''
+    Write or append data to a CSV file
+    1. If file does not exist...
+    2. ... create it using data
+    3. If it exists...
+    4. Append it without header, compressed.
+    '''
+    filename = filename + '.gz'
+    if not os.path.isfile(filename):
+        print(f'Creating: {filename}')
+        data.to_csv(filename, index=False, compression='gzip')
+    else: # else it exists so append without writing the header
+        print(f'Appending to: {filename}')
+        with gzip.open(filename, 'at') as compressed_file:
+            data.to_csv(compressed_file, header=False, index=False)
+
 def get_full_path(site,filename,date):
     '''
     Defines where to export CSVs
@@ -88,45 +106,15 @@ def loop_csv(full_path,filename,start_date):
     '''
     date = date_to_YM(start_date)
     file_list = []                          # Initialize empty list
-    for file in os.listdir(full_path):      # Check All files in directory
+    listdir = os.listdir(full_path)
+    for file in listdir:                    # Check All files in directory
         if file.endswith('_'+ filename):    # Check that it ends with filename
             file_date = file.split('_')[0] 
             if file_date >= date:
                 print(f'Checking {file}')
                 file_list.append(file)          # Add file to list
                 file_list.sort()                # Sort files
-    print('Done With loop_csv')
     return file_list
-
-def get_dates_from_csv(path):
-    '''
-    Read CSV if it exists.
-    From CSV, get unique dates.
-    '''
-    if os.path.isfile(path):
-        data = pd.read_csv(path)
-        data = pd.Series(data['date'].unique())
-        return data
-    else:
-        pass
-
-def get_dates_csvs(full_path,site,filename,start_date):
-    '''
-    Get a list of all existing dates.
-    1. Check all CSV files in project
-    2. Read each CSVs and get unique dates
-    3. Combine unique dates from all CSVs in a set
-    '''
-    print(f'Checking existing dates in {full_path}')
-    dset = set()                        # Initialize a set()
-    csvs = loop_csv(full_path,filename,start_date) # Read all csvs
-    for csv in csvs:                    # For each CSV
-        path = os.path.join(full_path + csv)# Get file path
-        dates = get_dates_from_csv(path)# Get unique dates
-        for date in dates:              # For each date
-            dset.add(date)              # Add to a set of unique values
-    print('Done getting dates from CSV')
-    return dset
 
 def date_to_index(df,datecol):
     '''
@@ -142,29 +130,64 @@ def date_to_index(df,datecol):
         df = df.set_index(datecol)
     return df
 
-def csvs_to_df(path,filename):
+def read_csv_list(path,gz=False):
     '''
-    Read all files in path that contains filename
-    1. Use glob to get a list of files in directory
-    2. Read each file to a dataframe
-    3. Concat all dataframes to a unique DF
+    Read CSV if it exists.
+    If gz=True, use the compression parameter.
     '''
-    dfs, files = [],[]
-    globs = glob.glob(f'{path}/*{filename}')
-    for g in globs:
-        files.append(g)
-    for f in files:
-        print(f)
-        df = pd.read_csv(f)
-        dfs.append(df)
-    full_df = pd.concat(dfs)
-    return full_df
+    if os.path.isfile(path):
+        print(f'Reading {path} to CSV')
+        if gz == True:
+            data = pd.read_csv(path,compression='gzip')
+        else:
+            data = pd.read_csv(path)
+        return data
+    else:
+        pass
 
-def return_df(site,filename):
+def read_csvs(full_path,site,filename,start_date,gz=False):
     '''
-    From a given URL, find all existing GSC data
-    Return them to a unique dataframe.
+    Get a list of all existing dates.
+    1. Check all CSV files in project
+    2. Read each CSVs and get unique dates
+    3. Combine unique dates from all CSVs in a set
     '''
-    folder = get_domain_name(site)
-    df = csvs_to_df(folder,filename)  
+    if gz == True:
+        filename = filename + '.gz'
+    print(f'Checking CSVs in {full_path}')
+    dfs = []                                        # Initialize a set()
+    csvs = loop_csv(full_path,filename,start_date)  # Read all csvs
+
+    if not csvs:
+        print('No CSV to read')
+        df = pd.DataFrame()
+    else:
+        for csv in csvs:
+            path = os.path.join(full_path + csv)    # Get file path
+            df = read_csv_list(path,gz=gz)          # Get unique dates
+            dfs.append(df)                          # Add to a set of unique values
+        df = pd.concat(dfs)
+    print('Done extracting DF from CSVs')
+    return df
+
+def get_dates_csvs(site,output,start_date,gz=False):
+    '''
+    Get a list of all unique existing dates in a set.
+    '''
+    #print(f'Checking existing dates in {}')
+    df = csvs_to_df(site,output,start_date,gz=gz)
+    if df.empty:
+        return None
+    else:
+        dset = set(df['date'])
+        #print('Done getting dates from CSV')
+        return dset
+    
+def csvs_to_df(site,output,start_date,gz=False):
+    '''
+    Read all CSVs containing the output name after a specified date.
+    '''
+    get_path = get_full_path(site,output,start_date)
+    output_path = get_path[3]
+    df = read_csvs(output_path,site,output,start_date,gz=gz)
     return df
