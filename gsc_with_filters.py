@@ -30,7 +30,7 @@ days = relativedelta.relativedelta(days=3)
 default_end = today - days 
 
 # Run the extraction
-def gsc_with_filters(webmasters_service,site,creds,dimension,operator,expression,start_date,end_date=default_end):
+def gsc_with_filters(webmasters_service,site,creds,dimension,operator,expression,start_date,end_date=default_end,rowLimit=1000):
     scDict = defaultdict(list) # Create a dict to populate with extraction
     request = {
         'startDate': date_to_str(start_date),
@@ -42,7 +42,8 @@ def gsc_with_filters(webmasters_service,site,creds,dimension,operator,expression
                             'operator': operator,
                             'expression': expression
                         }]
-                        }]
+                        }],
+        'rowLimit': rowLimit
     }
     response = execute_request(webmasters_service, site, request)
     try:
