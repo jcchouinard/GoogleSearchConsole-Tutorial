@@ -60,7 +60,7 @@ def authorize_creds(creds):
     # Take the credentials and authorize them using httplib2   
     http = httplib2.Http()                                      # Creates an HTTP client object to make the http request
     http = credentials.authorize(http=http)                     # Sign each request from the HTTP client with the OAuth 2.0 access token
-    webmasters_service = build('webmasters', 'v3', http=http)   # Construct a Resource to interact with the API using the Authorized HTTP Client.
+    webmasters_service = build('searchconsole', 'v1', http=http)   # Construct a Resource to interact with the API using the Authorized HTTP Client.
 
     print('Auth Successful')
     return webmasters_service
