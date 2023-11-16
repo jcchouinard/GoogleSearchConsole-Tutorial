@@ -6,6 +6,9 @@ In this tutorial, I will show you how to extract Google Seach Console data using
 2. Extraction using filters
 3. Full Extraction to CSV
 
+[video tutorial](https://www.youtube.com/watch?v=oiQ0EYAEl-Y)
+[blog post example](https://www.jcchouinard.com/intro-to-gsc-api-with-python/)
+
 ## Get started
 
 ### Step 1: Get Google Search Console API Keys
